@@ -1,15 +1,20 @@
 name: emoji_transcoder
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Encoding and decoding messages into emojis using Unicode variation selectors.  Hide text within any Unicode character invisibly.
+version: 0.0.1
+homepage: https://github.com/cypherstack/emoji_transcoder
+repository: https://github.com/cypherstack/emoji_transcoder
+issue_tracker: https://github.com/cypherstack/emoji_transcoder/issues
 
 environment:
-  sdk: ^3.7.2
-
-# Add regular dependencies here.
-dependencies:
-  # path: ^1.8.0
+  sdk: '>=2.17.0 <4.0.0'
 
 dev_dependencies:
-  lints: ^5.0.0
-  test: ^1.24.0
+  test: ^1.21.0
+  lints: ^2.0.0
+
+topics:
+  - unicode
+  - steganography
+  - encoding
+  - emoji
+  - variation-selectors
