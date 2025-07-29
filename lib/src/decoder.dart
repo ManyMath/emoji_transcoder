@@ -2,7 +2,9 @@
 library decoder;
 
 import 'dart:convert';
+import 'dart:typed_data';
 import 'variation_selectors.dart';
+import 'compression.dart';
 
 /// Exception thrown when decoding fails.
 class DecodingException implements Exception {
@@ -42,6 +44,7 @@ class DecodedMessage {
 /// 
 /// Scans through the text looking for variation selectors, extracts the
 /// corresponding bytes, and converts them back to a UTF-8 string.
+/// Automatically handles decompression if the data was compressed.
 /// 
 /// Returns the decoded message or an empty string if no encoded data is found.
 /// 
@@ -78,7 +81,23 @@ String decode(String encodedText) {
       return '';
     }
     
-    // Convert bytes back to UTF-8 string.
+    // Check for compression marker
+    if (bytes.isNotEmpty) {
+      final marker = bytes[0];
+      final dataBytes = Uint8List.fromList(bytes.skip(1).toList());
+      
+      if (marker == 0) {
+        // Data is compressed
+        return decompressString(dataBytes);
+      } else if (marker == 1) {
+        // Data is uncompressed
+        return utf8.decode(dataBytes);
+      } else {
+        // Legacy format without marker - assume uncompressed
+        return utf8.decode(bytes);
+      }
+    }
+    
     return utf8.decode(bytes);
     
   } catch (e) {
@@ -123,10 +142,27 @@ List<DecodedMessage> decodeAll(String encodedText) {
       if (currentBytes.isNotEmpty && currentBaseCharacter != null) {
         // We have accumulated bytes, decode them.
         try {
-          final message = utf8.decode(currentBytes);
+          String message;
+          if (currentBytes.isNotEmpty) {
+            final marker = currentBytes[0];
+            final dataBytes = Uint8List.fromList(currentBytes.skip(1).toList());
+            
+            if (marker == 0) {
+              // Data is compressed
+              message = decompressString(dataBytes);
+            } else if (marker == 1) {
+              // Data is uncompressed
+              message = utf8.decode(dataBytes);
+            } else {
+              // Legacy format without marker - assume uncompressed
+              message = utf8.decode(currentBytes);
+            }
+          } else {
+            message = '';
+          }
           messages.add(DecodedMessage(currentBaseCharacter, message));
         } catch (e) {
-          // Skip invalid UTF-8 sequences.
+          // Skip invalid sequences.
         }
         currentBytes.clear();
       }
@@ -139,10 +175,27 @@ List<DecodedMessage> decodeAll(String encodedText) {
   // Handle any remaining bytes at the end.
   if (currentBytes.isNotEmpty && currentBaseCharacter != null) {
     try {
-      final message = utf8.decode(currentBytes);
+      String message;
+      if (currentBytes.isNotEmpty) {
+        final marker = currentBytes[0];
+        final dataBytes = Uint8List.fromList(currentBytes.skip(1).toList());
+        
+        if (marker == 0) {
+          // Data is compressed
+          message = decompressString(dataBytes);
+        } else if (marker == 1) {
+          // Data is uncompressed
+          message = utf8.decode(dataBytes);
+        } else {
+          // Legacy format without marker - assume uncompressed
+          message = utf8.decode(currentBytes);
+        }
+      } else {
+        message = '';
+      }
       messages.add(DecodedMessage(currentBaseCharacter, message));
     } catch (e) {
-      // Skip invalid UTF-8 sequences.
+      // Skip invalid sequences.
     }
   }
   

@@ -14,11 +14,11 @@
 /// ```dart
 /// import 'package:emoji_transcoder/emoji_transcoder.dart';
 /// 
-/// // Encode a message
-/// final encoded = EmojiTranscoder.encode('😊', 'Hello, World!');
+/// // Encode a message (with optional compression)
+/// final encoded = EmojiTranscoder.encode('😊', 'Hello, World!', compress: true);
 /// print(encoded); // Looks like just '😊' but contains hidden data
 /// 
-/// // Decode the message
+/// // Decode the message (automatically handles decompression)
 /// final decoded = EmojiTranscoder.decode(encoded);
 /// print(decoded); // 'Hello, World!'
 /// ```
@@ -63,6 +63,13 @@ export 'src/variation_selectors.dart' show
     InvalidByteException,
     InvalidVariationSelectorException;
 
+export 'src/compression.dart' show
+    compressString,
+    decompressString,
+    shouldCompress,
+    getCompressionStats,
+    CompressionException;
+
 /// Main class providing an API for emoji transcoding operations.
 /// 
 /// This class provides static methods that wrap the core encoding and decoding
@@ -75,21 +82,23 @@ class EmojiTranscoder {
   /// 
   /// The [baseCharacter] is the visible character (emoji, letter, etc.) that
   /// will appear in the output. The [message] is hidden within the character.
+  /// If [compress] is true, the message will be compressed before encoding if beneficial.
   /// 
   /// Example:
   /// ```dart
-  /// final encoded = EmojiTranscoder.encode('😊', 'secret message');
+  /// final encoded = EmojiTranscoder.encode('😊', 'secret message', compress: true);
   /// ```
   /// 
   /// Throws [EncodingException] if encoding fails.
   /// Throws [ArgumentError] if inputs are invalid.
-  static String encode(String baseCharacter, String message) {
-    return encoder.encode(baseCharacter, message);
+  static String encode(String baseCharacter, String message, {bool compress = false}) {
+    return encoder.encode(baseCharacter, message, compress: compress);
   }
   
   /// Decodes the first hidden message from encoded text.
   /// 
   /// Returns the decoded message or an empty string if no encoded data is found.
+  /// Automatically handles decompression if the data was compressed.
   /// 
   /// Example:
   /// ```dart
@@ -105,6 +114,7 @@ class EmojiTranscoder {
   /// 
   /// Returns a list of [DecodedMessage] objects containing both the base
   /// character and decoded message for each found sequence.
+  /// Automatically handles decompression if the data was compressed.
   /// 
   /// Example:
   /// ```dart
@@ -151,30 +161,32 @@ class EmojiTranscoder {
   
   /// Encodes multiple messages into a single text string.
   /// 
-  /// Each message is encoded with its own base character.  This allows
+  /// Each message is encoded with its own base character. This allows
   /// multiple hidden messages to coexist in the same text.
+  /// If [compress] is true, each message will be compressed before encoding if beneficial.
   /// 
   /// Example:
   /// ```dart
   /// final encoded = EmojiTranscoder.encodeMultiple({
   ///   '😊': 'hello',
   ///   '🌟': 'world',
-  /// });
+  /// }, compress: true);
   /// ```
-  static String encodeMultiple(Map<String, String> messages) {
-    return encoder.encodeMultiple(messages);
+  static String encodeMultiple(Map<String, String> messages, {bool compress = false}) {
+    return encoder.encodeMultiple(messages, compress: compress);
   }
   
   /// Encodes a message with a default base character.
   /// 
   /// Convenience method that uses '😊' as the default base character if none provided.
+  /// If [compress] is true, the message will be compressed before encoding if beneficial.
   /// 
   /// Example:
   /// ```dart
-  /// final encoded = EmojiTranscoder.encodeWithDefault('secret');
-  /// // Equivalent to EmojiTranscoder.encode('😊', 'secret')
+  /// final encoded = EmojiTranscoder.encodeWithDefault('secret', compress: true);
+  /// // Equivalent to EmojiTranscoder.encode('😊', 'secret', compress: true)
   /// ```
-  static String encodeWithDefault(String message, {String? baseCharacter}) {
-    return encoder.encodeWithDefault(message, baseCharacter: baseCharacter);
+  static String encodeWithDefault(String message, {String? baseCharacter, bool compress = false}) {
+    return encoder.encodeWithDefault(message, baseCharacter: baseCharacter, compress: compress);
   }
 }

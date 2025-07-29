@@ -3,7 +3,9 @@
 library encoder;
 
 import 'dart:convert';
+import 'dart:typed_data';
 import 'variation_selectors.dart';
+import 'compression.dart';
 
 /// Exception thrown when encoding fails.
 class EncodingException implements Exception {
@@ -18,20 +20,21 @@ class EncodingException implements Exception {
 /// 
 /// The [baseCharacter] is the visible character (emoji, letter, etc.) that will
 /// appear in the output. The [message] is the text to hide within the character.
+/// If [compress] is true, the message will be compressed before encoding if beneficial.
 /// 
-/// The message is first converted to UTF-8 bytes, then each byte is converted
-/// to its corresponding variation selector and appended after the base
-/// character.
+/// The message is first optionally compressed, then converted to bytes, then each
+/// byte is converted to its corresponding variation selector and appended after
+/// the base character.
 /// 
 /// Example:
 /// ```dart
-/// final encoded = encode('😊', 'hello');
+/// final encoded = encode('😊', 'hello', compress: true);
 /// print(encoded); // Looks like just '😊' but contains hidden data.
 /// ```
 /// 
 /// Throws [EncodingException] if the encoding process fails.
 /// Throws [ArgumentError] if inputs are invalid.
-String encode(String baseCharacter, String message) {
+String encode(String baseCharacter, String message, {bool compress = false}) {
   // Validate inputs.
   if (baseCharacter.isEmpty) {
     throw ArgumentError('Base character cannot be empty');
@@ -48,8 +51,23 @@ String encode(String baseCharacter, String message) {
   }
   
   try {
-    // Convert message to UTF-8 bytes.
-    final messageBytes = utf8.encode(message);
+    Uint8List messageBytes;
+    
+    // Optionally compress the message if beneficial
+    if (compress && shouldCompress(message)) {
+      messageBytes = compressString(message);
+      // Add compression marker (use byte 0 to indicate compressed data)
+      final markedBytes = Uint8List(messageBytes.length + 1);
+      markedBytes[0] = 0;  // Compression marker
+      markedBytes.setRange(1, messageBytes.length + 1, messageBytes);
+      messageBytes = markedBytes;
+    } else {
+      // Add uncompressed marker (use byte 1 to indicate uncompressed data)
+      final originalBytes = utf8.encode(message);
+      messageBytes = Uint8List(originalBytes.length + 1);
+      messageBytes[0] = 1;  // Uncompressed marker
+      messageBytes.setRange(1, originalBytes.length + 1, originalBytes);
+    }
     
     // Start with the base character.
     final buffer = StringBuffer(baseCharacter);
@@ -70,6 +88,7 @@ String encode(String baseCharacter, String message) {
 /// 
 /// Each message is encoded with its own base character. This allows multiple
 /// hidden messages to coexist in the same text.
+/// If [compress] is true, each message will be compressed before encoding if beneficial.
 /// 
 /// The [messages] map contains base characters as keys and messages as values.
 /// 
@@ -78,10 +97,10 @@ String encode(String baseCharacter, String message) {
 /// final encoded = encodeMultiple({
 ///   '😊': 'hello',
 ///   '🌟': 'world',
-/// });
+/// }, compress: true);
 /// // Result looks like '😊🌟' but contains two hidden messages.
 /// ```
-String encodeMultiple(Map<String, String> messages) {
+String encodeMultiple(Map<String, String> messages, {bool compress = false}) {
   if (messages.isEmpty) {
     throw ArgumentError('Messages map cannot be empty');
   }
@@ -89,7 +108,7 @@ String encodeMultiple(Map<String, String> messages) {
   final buffer = StringBuffer();
   
   for (final entry in messages.entries) {
-    buffer.write(encode(entry.key, entry.value));
+    buffer.write(encode(entry.key, entry.value, compress: compress));
   }
   
   return buffer.toString();
@@ -98,9 +117,10 @@ String encodeMultiple(Map<String, String> messages) {
 /// Encodes a message with automatic base character selection.
 /// 
 /// If no [baseCharacter] is provided, uses a default emoji.
+/// If [compress] is true, the message will be compressed before encoding if beneficial.
 /// This is a convenience method for simple encoding scenarios.
-String encodeWithDefault(String message, {String? baseCharacter}) {
-  return encode(baseCharacter ?? '😊', message);
+String encodeWithDefault(String message, {String? baseCharacter, bool compress = false}) {
+  return encode(baseCharacter ?? '😊', message, compress: compress);
 }
 
 /// Estimates the visual length of encoded text.
