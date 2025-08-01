@@ -1,3 +1,7 @@
+## 0.0.2
+
+- Add a CLI example application which integrates with the clipboard directly.
+
 ## 0.0.1
 
 - Initial release of emoji_transcoder package.

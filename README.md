@@ -141,7 +141,43 @@ The decoding process reverses this by extracting variation selectors and convert
 ## Examples
 See the `example/` directory for complete usage examples:
 
-- `example/basic_usage.dart` - Comprehensive demonstration of all features
+- `example/emoji_transcoder_example.dart` - Basic library usage examples
+- `example/emoji_cli/` - Full-featured CLI application for clipboard-based encoding/decoding
+
+### CLI Tool
+The package includes a command-line interface for practical use:
+
+```bash
+cd example/emoji_cli
+dart pub get
+dart run bin/main.dart --help
+```
+
+Features:
+- **Command-line mode**: `emoji_cli --encode "😊:Hello World"`
+- **Interactive mode**: Run without arguments for a persistent session
+- **Clipboard integration**: Direct read/write to system clipboard
+- **Multiple encoding methods**: Standard and safe ZWJ encoding
+- **Analysis tools**: Statistics, detection, and text inspection
+- **Batch operations**: Encode/decode multiple messages at once
+
+Example usage:
+```bash
+# Encode a secret message
+emoji_cli --encode "🔐:This is secret"
+
+# Check what's in clipboard (appears as just 🔐)
+emoji_cli --raw
+
+# Decode the hidden message
+emoji_cli --decode
+# Output: This is secret
+
+# Interactive mode for multiple operations
+emoji_cli
+```
+
+**Note**: Use plain Unicode characters as base (🐈 not 🐈️). Avoid emojis with variation selectors.
 
 ## Testing
 Run the test suite:

@@ -1,0 +1,17 @@
+name: emoji_cli
+description: A CLI application demonstrating emoji transcoder clipboard functionality
+version: 0.0.1
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+
+dependencies:
+  emoji_transcoder: ^0.0.1
+  daniboard: ^1.1.0
+  args: ^2.4.2
+
+dev_dependencies:
+  test: ^1.21.0
+
+executables:
+  emoji_cli: main

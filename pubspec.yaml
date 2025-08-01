@@ -1,6 +1,6 @@
 name: emoji_transcoder
-description: Encoding and decoding messages into emojis using Unicode variation selectors.  Hide text within any Unicode character invisibly.
-version: 0.0.1
+description: Encode messages into emojis and decode them using Unicode variation selectors.  Hide text within any Unicode character invisibly.
+version: 0.0.2
 homepage: https://github.com/cypherstack/emoji_transcoder
 repository: https://github.com/cypherstack/emoji_transcoder
 issue_tracker: https://github.com/cypherstack/emoji_transcoder/issues
