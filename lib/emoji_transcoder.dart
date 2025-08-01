@@ -37,6 +37,7 @@ library emoji_transcoder;
 import 'src/encoder.dart' as encoder;
 import 'src/decoder.dart' as decoder;
 import 'src/decoder.dart' show DecodedMessage;
+import 'src/clipboard_utils.dart' as clipboard;
 
 export 'src/encoder.dart' show
     encode,
@@ -62,6 +63,20 @@ export 'src/variation_selectors.dart' show
     getCodepoint,
     InvalidByteException,
     InvalidVariationSelectorException;
+
+export 'src/clipboard_utils.dart' show
+    readAndDecodeFromClipboard,
+    readAndDecodeAllFromClipboard,
+    encodeAndWriteToClipboard,
+    encodeMultipleAndWriteToClipboard,
+    encodeSafeAndWriteToClipboard,
+    readAndDecodeSafeFromClipboard,
+    getRawClipboardText,
+    setRawClipboardText,
+    clipboardHasHiddenData,
+    clipboardHasSafeHiddenData,
+    getClipboardStats,
+    ClipboardException;
 
 /// Main class providing an API for emoji transcoding operations.
 /// 
@@ -176,5 +191,60 @@ class EmojiTranscoder {
   /// ```
   static String encodeWithDefault(String message, {String? baseCharacter}) {
     return encoder.encodeWithDefault(message, baseCharacter: baseCharacter);
+  }
+  
+  // Clipboard Operations
+  
+  /// Reads text from the clipboard and decodes the first hidden message.
+  /// 
+  /// Returns the decoded message or an empty string if no encoded data is found.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final message = await EmojiTranscoder.readFromClipboard();
+  /// if (message.isNotEmpty) {
+  ///   print('Hidden message: $message');
+  /// }
+  /// ```
+  static Future<String> readFromClipboard() async {
+    return clipboard.readAndDecodeFromClipboard();
+  }
+  
+  /// Reads text from the clipboard and decodes all hidden messages.
+  /// 
+  /// Returns a list of decoded messages found in the clipboard.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final messages = await EmojiTranscoder.readAllFromClipboard();
+  /// for (final msg in messages) {
+  ///   print('${msg.baseCharacter}: ${msg.message}');
+  /// }
+  /// ```
+  static Future<List<DecodedMessage>> readAllFromClipboard() async {
+    return clipboard.readAndDecodeAllFromClipboard();
+  }
+  
+  /// Encodes a message and writes it to the clipboard.
+  /// 
+  /// Example:
+  /// ```dart
+  /// await EmojiTranscoder.writeToClipboard('😊', 'Secret message');
+  /// ```
+  static Future<void> writeToClipboard(String baseCharacter, String message) async {
+    return clipboard.encodeAndWriteToClipboard(baseCharacter, message);
+  }
+  
+  /// Encodes multiple messages and writes them to the clipboard.
+  /// 
+  /// Example:
+  /// ```dart
+  /// await EmojiTranscoder.writeMultipleToClipboard({
+  ///   '😊': 'Hello',
+  ///   '🌟': 'World',
+  /// });
+  /// ```
+  static Future<void> writeMultipleToClipboard(Map<String, String> messages) async {
+    return clipboard.encodeMultipleAndWriteToClipboard(messages);
   }
 }
