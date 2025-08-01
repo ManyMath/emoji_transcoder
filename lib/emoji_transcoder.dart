@@ -37,6 +37,7 @@ library emoji_transcoder;
 import 'src/encoder.dart' as encoder;
 import 'src/decoder.dart' as decoder;
 import 'src/decoder.dart' show DecodedMessage;
+import 'src/zwj_encoder.dart' as zwj;
 
 export 'src/encoder.dart' show
     encode,
@@ -62,6 +63,13 @@ export 'src/variation_selectors.dart' show
     getCodepoint,
     InvalidByteException,
     InvalidVariationSelectorException;
+
+export 'src/zwj_encoder.dart' show
+    encodeWithZWJ,
+    decodeZWJ,
+    hasZWJEncodedData,
+    getZWJVisibleText,
+    ZWJEncodingException;
 
 /// Main class providing an API for emoji transcoding operations.
 /// 
@@ -176,5 +184,42 @@ class EmojiTranscoder {
   /// ```
   static String encodeWithDefault(String message, {String? baseCharacter}) {
     return encoder.encodeWithDefault(message, baseCharacter: baseCharacter);
+  }
+  
+  /// Encodes a message using ZWJ sequences that survive copy/paste operations.
+  /// 
+  /// This method is more robust than the standard variation selector encoding
+  /// and should preserve hidden data when copying and pasting across different
+  /// applications.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final encoded = EmojiTranscoder.encodeSafe('😊', 'secret message');
+  /// // Can be safely copied and pasted while preserving hidden data
+  /// ```
+  static String encodeSafe(String baseCharacter, String message) {
+    return zwj.encodeWithZWJ(baseCharacter, message);
+  }
+  
+  /// Decodes a ZWJ-encoded message that was created with encodeSafe().
+  /// 
+  /// Returns the decoded message or an empty string if no ZWJ-encoded data is found.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final decoded = EmojiTranscoder.decodeSafe(encodedText);
+  /// ```
+  static String decodeSafe(String encodedText) {
+    return zwj.decodeZWJ(encodedText);
+  }
+  
+  /// Checks if text contains ZWJ-encoded data (from encodeSafe).
+  static bool hasSafeHiddenData(String text) {
+    return zwj.hasZWJEncodedData(text);
+  }
+  
+  /// Extracts just the visible characters from ZWJ-encoded text.
+  static String getSafeVisibleText(String encodedText) {
+    return zwj.getZWJVisibleText(encodedText);
   }
 }

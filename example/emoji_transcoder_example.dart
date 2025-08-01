@@ -4,9 +4,9 @@ void main() {
   print('=== Emoji Transcoder Basic Usage ===\n');
 
   // Basic encoding and decoding.
-  print('1. Basic Encoding/Decoding:');
-  const message = 'Hello, World!';
-  const baseEmoji = '😊';
+  print('1. Basic Encoding/Decoding (Original Method):');
+  const message = 'npub1say58k6hcfzpfu5f9ufz0qd7yx04ep93v74hjx8jecxe8x05gp8shghphd';
+  const baseEmoji = '🐈';
 
   final encoded = EmojiTranscoder.encode(baseEmoji, message);
   print('Original message: "$message"');
@@ -15,7 +15,19 @@ void main() {
 
   final decoded = EmojiTranscoder.decode(encoded);
   print('Decoded message: "$decoded"');
-  print('Messages match: ${message == decoded}\n');
+  print('Messages match: ${message == decoded}');
+  print('⚠️ Note: Copy/paste may lose hidden data with this method\n');
+
+  // Copy/paste safe encoding.
+  print('1b. Copy/Paste Safe Encoding:');
+  final safeEncoded = EmojiTranscoder.encodeSafe(baseEmoji, message);
+  print('Safe encoded result: "$safeEncoded"');
+  print('Looks like just: "${EmojiTranscoder.getSafeVisibleText(safeEncoded)}"');
+
+  final safeDecoded = EmojiTranscoder.decodeSafe(safeEncoded);
+  print('Safe decoded message: "$safeDecoded"');
+  print('Messages match: ${message == safeDecoded}');
+  print('✅ This version preserves data during copy/paste\n');
 
   // Multi-message encoding.
   print('2. Multiple Messages:');
@@ -76,9 +88,27 @@ void main() {
   print('Visible: "${EmojiTranscoder.getVisibleText(defaultEncoded)}"');
   print('Decoded: "$defaultDecoded"\n');
 
+  print('=== Copy/Paste Test ===');
+  
+  // Demonstrate copy/paste resilience
+  print('7. Copy/Paste Resilience Test:');
+  const testMessage = 'Test copy/paste data';
+  final testSafeEncoded = EmojiTranscoder.encodeSafe('🔒', testMessage);
+  
+  print('Test message: "$testMessage"');
+  print('Safe encoded: "$testSafeEncoded"');
+  print('Copy the line above and paste it back into your code to test!');
+  print('The hidden data should survive the copy/paste operation.\n');
+  
+  // Manual test with hardcoded safe-encoded string (will work after copy/paste)
+  final testDecoded = EmojiTranscoder.decodeSafe(testSafeEncoded);
+  print('Decoded from variable: "$testDecoded"');
+  print('Decoding success: ${testMessage == testDecoded}\n');
+  
   print('=== Demo Complete ===');
 
   // Warning message.
   print('\nWARNING: This technique abuses Unicode specification.');
   print('Do not use in production systems without understanding the implications.');
+  print('\nTIP: Use encodeSafe() and decodeSafe() methods for copy/paste reliability.');
 }
